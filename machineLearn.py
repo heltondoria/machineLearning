@@ -12,6 +12,7 @@ import os
 import sys
 import xml.etree.ElementTree
 import xml.parsers.expat
+from nltk import RegexpTokenizer, corpus, SnowballStemmer
 
 OUTRAS = 0
 
@@ -138,17 +139,28 @@ def read_data(ext_tree) -> list:
             data["texto"] = ""
             for sentence in paragrafo.findall("s"):
                 data["texto"] = data["texto"] + sentence.text
-            data["texto"] = data["texto"].strip()
+            data["texto"] = data["texto"]
         if len(data["texto"]) > 100:
             dataset.append(data.copy())
         data.clear()
     return dataset
 
 
+def preprocess(dataset):
+    for data in dataset:
+        data["texto"] = data["texto"].lower()
+        tokenizer = RegexpTokenizer(r'\w+')
+        stemmer = SnowballStemmer("portuguese")
+        tokens = tokenizer.tokenize(data["texto"])
+        data["texto"] = [stemmer.stem(token) for token in tokens if not token in corpus.stopwords.words('portuguese')]
+    return dataset
+
+
 def filter_data(dataset: list, type: int, limit: int) -> list:
     """ Filtra os dados de um dataset através da classe do dado """
     dataset_by_type = [data for data in dataset if data["classe"] == type]
-    return dataset_by_type[:limit]
+
+    return preprocess(dataset_by_type[:limit])
 
 
 tree = import_xml('./dataset/CETENFolha-1.0.xml')
