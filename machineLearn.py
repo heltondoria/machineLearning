@@ -153,5 +153,8 @@ def filter_data(dataset: list, type: int, limit: int) -> list:
 
 tree = import_xml('./dataset/CETENFolha-1.0.xml')
 dataset_list = read_data(tree)
-write_csv(filter_data(dataset_list, ESPORTE, 36000), './dataset/dataset_esporte.csv')
-write_csv(filter_data(dataset_list, OUTRAS, 36000), './dataset/dataset_outras.csv')
+dataset_of_sport = filter_data(dataset_list, ESPORTE, 36000)
+write_csv(dataset_of_sport, './dataset/dataset_esporte.csv')
+dataset_of_others = filter_data(dataset_list, OUTRAS, 36000)
+write_csv(dataset_of_others, './dataset/dataset_outras.csv')
+
