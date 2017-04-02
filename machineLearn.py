@@ -5,14 +5,13 @@
 # Author: helton <helton.doria@gmail.com>
 # URL: <>
 # For license information, see LICENSE.TXT
-import os
-import xml.etree.ElementTree
-import xml.parsers.expat
-import sys
+import csv
 import errno
 import logging
-import collections
-import csv
+import os
+import sys
+import xml.etree.ElementTree
+import xml.parsers.expat
 
 OUTRAS = 0
 
@@ -120,10 +119,12 @@ def import_xml(filename):
     return ext_tree
 
 
-def read_data(ext_tree):
+def read_data(ext_tree) -> list:
     """
         Varre o XML de entrada e transforma numa lista de dicionários no formato
-        ({id: 1, classe: 1, texto: "texto"})   
+        [{id: 1, classe: 1, texto: "texto"}]
+        :param ext_tree árvore com registros a serem lidos
+        :rtype: list
     """
     data = dict()
     dataset = list()
@@ -144,5 +145,13 @@ def read_data(ext_tree):
     return dataset
 
 
+def filter_data(dataset: list, type: int, limit: int) -> list:
+    """ Filtra os dados de um dataset através da classe do dado """
+    dataset_by_type = [data for data in dataset if data["classe"] == type]
+    return dataset_by_type[:limit]
+
+
 tree = import_xml('./dataset/CETENFolha-1.0.xml')
-write_csv(read_data(tree), './dataset/dataset.csv')
+dataset_list = read_data(tree)
+write_csv(filter_data(dataset_list, ESPORTE, 36000), './dataset/dataset_esporte.csv')
+write_csv(filter_data(dataset_list, OUTRAS, 36000), './dataset/dataset_outras.csv')
