@@ -12,7 +12,7 @@ import os
 import sys
 import xml.etree.ElementTree
 import xml.parsers.expat
-from nltk import RegexpTokenizer, corpus, SnowballStemmer
+from nltk import RegexpTokenizer, corpus, SnowballStemmer, FreqDist
 
 OUTRAS = 0
 
@@ -109,6 +109,20 @@ def write_csv(csv_data, file_name=None):
         file.close()
 
 
+def write_dict_to_csv(csv_data, file_name=None):
+    """
+    Salva os dados em um arquivo csv
+    :param file_name: nome do arquivo csv
+    :param csv_data: dados a serem persistidos no arquivo csv
+    """
+    with safe_open(filepath=file_name, mode='w') as file:
+        csv.register_dialect("unix_dialect")
+        writer = csv.writer(file)
+        for (k, v) in csv_data:
+            writer.writerow([k, v])
+        file.close()
+
+
 def import_xml(filename):
     """Carrega dados a partir do arquivo xml do CETENFolha"""
     ext_tree = None
@@ -163,10 +177,20 @@ def filter_data(dataset: list, type: int, limit: int) -> list:
     return preprocess(dataset_by_type[:limit])
 
 
+def join_text(dataset):
+    """ Junta todos os tokens de um único dataset """
+    all_text = list()
+    for data in dataset:
+        all_text = all_text + data["texto"]
+    return all_text
+
+
 tree = import_xml('./dataset/CETENFolha-1.0.xml')
 dataset_list = read_data(tree)
-dataset_of_sport = filter_data(dataset_list, ESPORTE, 36000)
-write_csv(dataset_of_sport, './dataset/dataset_esporte.csv')
-dataset_of_others = filter_data(dataset_list, OUTRAS, 36000)
-write_csv(dataset_of_others, './dataset/dataset_outras.csv')
+esporte = FreqDist(join_text(filter_data(dataset_list, ESPORTE, 36000)))
+esporte_por_freq = [(key, esporte[key]) for key in sorted(esporte, key=esporte.get, reverse=True)]
+write_dict_to_csv(esporte_por_freq, './dataset/dataset_esporte.csv')
+outras = FreqDist(join_text(filter_data(dataset_list, OUTRAS, 36000)))
+outras_por_freq = [(key, outras[key]) for key in sorted(outras, key=outras.get, reverse=True)]
+write_dict_to_csv(outras_por_freq, './dataset/dataset_outras.csv')
 
