@@ -105,7 +105,7 @@ def write_csv(csv_data, file_name=None):
         csv.register_dialect("unix_dialect")
         writer = csv.writer(file)
         for item in list(csv_data):
-            writer.writerow([item["id"], item["classe"], item["texto"]])
+            writer.writerow(item.values())
         file.close()
 
 
